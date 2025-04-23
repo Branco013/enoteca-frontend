@@ -21,7 +21,7 @@ function Home() {
           <p className="text-gray-600">Nenhum evento cadastrado ainda.</p>
         ) : (
           eventos.map(evento => (
-            <div key={evento.id} className="border p-4 rounded shadow">
+            <div key={evento.id} className={`border p-4 rounded shadow ${evento.status === 'CANCELADO' ? 'bg-gray-200 line-through' : ''}`}>
               <h2 className="text-lg font-semibold">{evento.cliente}</h2>
               <p><strong>Empresa:</strong> {evento.empresa}</p>
               <p><strong>Data:</strong> {new Date(evento.data_hora).toLocaleString()}</p>
@@ -58,10 +58,13 @@ function DetalhesEvento() {
       <p><strong>Local:</strong> {evento.local}</p>
       <p><strong>Status:</strong> {evento.status}</p>
       <p><strong>Menu:</strong> {evento.menu}</p>
+      <p><strong>Pacote de Bebidas:</strong> {evento.bebidas ? 'Sim' : 'Não'}</p>
       <p><strong>Valor por Pessoa:</strong> R$ {evento.valor_por_pessoa}</p>
       <p><strong>Nº de Pessoas:</strong> {evento.pessoas}</p>
       <p><strong>Observações:</strong> {evento.observacoes}</p>
-      <Link to="/" className="text-blue-600 mt-4 block">← Voltar</Link>
+      <div className="mt-6">
+        <Link to="/" className="text-blue-600 underline">← Voltar para Agenda</Link>
+      </div>
     </div>
   );
 }
@@ -76,13 +79,28 @@ function NovoEvento() {
     local: '',
     menu: '',
     valor_por_pessoa: '',
+    bebidas: false,
     observacoes: ''
   });
   const navigate = useNavigate();
 
   function handleChange(e) {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setForm({
+      ...form,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  }
+
+  function handleMenuChange(e) {
+    const menu = e.target.value;
+    let precoBase = '';
+    if (menu === 'MENU 1') precoBase = 199.90;
+    else if (menu === 'MENU 2') precoBase = 229.90;
+    else if (menu === 'MENU 3') precoBase = 255.90;
+    else if (menu === 'MENU 4') precoBase = 299.90;
+    else if (menu === 'MENU A DEFINIR') precoBase = '';
+    setForm({ ...form, menu, valor_por_pessoa: precoBase });
   }
 
   function handleSubmit(e) {
@@ -107,22 +125,31 @@ function NovoEvento() {
           <option value="">Status</option>
           <option value="CONFIRMADO">Confirmado</option>
           <option value="EM ANÁLISE">Em Análise</option>
+          <option value="CANCELADO">Cancelado</option>
         </select>
         <select name="local" value={form.local} onChange={handleChange} className="border p-2 rounded">
           <option value="">Local</option>
           <option value="SALA DE EVENTOS">Sala de Eventos</option>
           <option value="RESTAURANTE">Restaurante</option>
         </select>
-        <select name="menu" value={form.menu} onChange={handleChange} className="border p-2 rounded">
+        <select name="menu" value={form.menu} onChange={handleMenuChange} className="border p-2 rounded">
           <option value="">Menu</option>
           <option value="MENU 1">Menu 1</option>
           <option value="MENU 2">Menu 2</option>
           <option value="MENU 3">Menu 3</option>
+          <option value="MENU 4">Menu 4</option>
           <option value="MENU A DEFINIR">Menu a Definir</option>
         </select>
         <input name="valor_por_pessoa" type="number" step="0.01" placeholder="Valor por Pessoa" value={form.valor_por_pessoa} onChange={handleChange} className="border p-2 rounded" />
+        <label className="inline-flex items-center">
+          <input type="checkbox" name="bebidas" checked={form.bebidas} onChange={handleChange} className="mr-2" />
+          Incluir pacote de bebidas (+R$ 35,00 por pessoa)
+        </label>
         <textarea name="observacoes" placeholder="Observações" value={form.observacoes} onChange={handleChange} className="border p-2 rounded"></textarea>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
+        <div className="flex gap-2">
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
+          <Link to="/" className="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</Link>
+        </div>
       </form>
     </div>
   );
