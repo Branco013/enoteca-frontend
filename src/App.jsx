@@ -28,7 +28,8 @@ function Home() {
               <p><strong>Local:</strong> {evento.local}</p>
               <p><strong>Status:</strong> {evento.status}</p>
               <p><strong>Menu:</strong> {evento.menu}</p>
-              <Link to={`/evento/${evento.id}`} className="text-blue-600 mt-2 inline-block">Ver Detalhes</Link>
+              <Link to={`/evento/${evento.id}`} className="text-blue-600 mr-4">Ver Detalhes</Link>
+              <Link to={`/evento/${evento.id}/editar`} className="text-yellow-600">Editar</Link>
             </div>
           ))
         )}
@@ -62,27 +63,24 @@ function DetalhesEvento() {
       <p><strong>Valor por Pessoa:</strong> R$ {evento.valor_por_pessoa}</p>
       <p><strong>Nº de Pessoas:</strong> {evento.pessoas}</p>
       <p><strong>Observações:</strong> {evento.observacoes}</p>
-      <div className="mt-6">
+      <div className="mt-6 flex gap-4">
         <Link to="/" className="text-blue-600 underline">← Voltar para Agenda</Link>
+        <Link to={`/evento/${evento.id}/editar`} className="text-yellow-600 underline">Editar Evento</Link>
       </div>
     </div>
   );
 }
 
-function NovoEvento() {
-  const [form, setForm] = useState({
-    cliente: '',
-    empresa: '',
-    data_hora: '',
-    pessoas: '',
-    status: '',
-    local: '',
-    menu: '',
-    valor_por_pessoa: '',
-    bebidas: false,
-    observacoes: ''
-  });
+function EditarEvento() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [form, setForm] = useState(null);
+
+  useEffect(() => {
+    axios.get(`https://enoteca-backend.onrender.com/eventos/${id}`)
+      .then(res => setForm(res.data))
+      .catch(() => alert('Erro ao carregar evento.'));
+  }, [id]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -105,21 +103,23 @@ function NovoEvento() {
 
   function handleSubmit(e) {
     e.preventDefault();
-    axios.post('https://enoteca-backend.onrender.com/eventos', form)
+    axios.put(`https://enoteca-backend.onrender.com/eventos/${id}`, form)
       .then(() => {
-        alert('Evento cadastrado com sucesso!');
-        navigate('/');
+        alert('Evento atualizado com sucesso!');
+        navigate(`/evento/${id}`);
       })
-      .catch(() => alert('Erro ao cadastrar evento.'));
+      .catch(() => alert('Erro ao atualizar evento.'));
   }
+
+  if (!form) return <div className="p-6">Carregando...</div>;
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Cadastrar Novo Evento</h2>
+      <h2 className="text-xl font-semibold mb-4">Editar Evento</h2>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 max-w-xl">
         <input name="cliente" type="text" placeholder="Nome do Cliente" value={form.cliente} onChange={handleChange} className="border p-2 rounded" required />
         <input name="empresa" type="text" placeholder="Empresa" value={form.empresa} onChange={handleChange} className="border p-2 rounded" />
-        <input name="data_hora" type="datetime-local" value={form.data_hora} onChange={handleChange} className="border p-2 rounded" required />
+        <input name="data_hora" type="datetime-local" value={form.data_hora?.slice(0, 16)} onChange={handleChange} className="border p-2 rounded" required />
         <input name="pessoas" type="number" placeholder="Nº de Pessoas" value={form.pessoas} onChange={handleChange} className="border p-2 rounded" />
         <select name="status" value={form.status} onChange={handleChange} className="border p-2 rounded">
           <option value="">Status</option>
@@ -147,8 +147,8 @@ function NovoEvento() {
         </label>
         <textarea name="observacoes" placeholder="Observações" value={form.observacoes} onChange={handleChange} className="border p-2 rounded"></textarea>
         <div className="flex gap-2">
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
-          <Link to="/" className="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</Link>
+          <button type="submit" className="bg-yellow-600 text-white px-4 py-2 rounded">Salvar Alterações</button>
+          <Link to={`/evento/${id}`} className="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</Link>
         </div>
       </form>
     </div>
@@ -162,6 +162,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/novo" element={<NovoEvento />} />
         <Route path="/evento/:id" element={<DetalhesEvento />} />
+        <Route path="/evento/:id/editar" element={<EditarEvento />} />
       </Routes>
     </Router>
   );
