@@ -84,10 +84,7 @@ function EditarEvento() {
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
   }
 
   function handleMenuChange(e) {
@@ -155,6 +152,10 @@ function EditarEvento() {
   );
 }
 
+// NovoEvento permanece como está no canvas
+// (já inserido anteriormente e funcional)
+
+// App principal
 export default function App() {
   return (
     <Router>
