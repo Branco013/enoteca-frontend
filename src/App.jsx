@@ -152,10 +152,80 @@ function EditarEvento() {
   );
 }
 
-// NovoEvento permanece como está no canvas
-// (já inserido anteriormente e funcional)
+function NovoEvento() {
+  const [form, setForm] = useState({
+    cliente: '', empresa: '', data_hora: '', pessoas: '', status: '', local: '', menu: '', valor_por_pessoa: '', bebidas: false, observacoes: ''
+  });
+  const navigate = useNavigate();
 
-// App principal
+  function handleChange(e) {
+    const { name, value, type, checked } = e.target;
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
+  }
+
+  function handleMenuChange(e) {
+    const menu = e.target.value;
+    let precoBase = '';
+    if (menu === 'MENU 1') precoBase = 199.90;
+    else if (menu === 'MENU 2') precoBase = 229.90;
+    else if (menu === 'MENU 3') precoBase = 255.90;
+    else if (menu === 'MENU 4') precoBase = 299.90;
+    else if (menu === 'MENU A DEFINIR') precoBase = '';
+    setForm({ ...form, menu, valor_por_pessoa: precoBase });
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    axios.post('https://enoteca-backend.onrender.com/eventos', form)
+      .then(() => {
+        alert('Evento cadastrado com sucesso!');
+        navigate('/');
+      })
+      .catch(() => alert('Erro ao cadastrar evento.'));
+  }
+
+  return (
+    <div className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Cadastrar Novo Evento</h2>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 max-w-xl">
+        <input name="cliente" type="text" placeholder="Nome do Cliente" value={form.cliente} onChange={handleChange} className="border p-2 rounded" required />
+        <input name="empresa" type="text" placeholder="Empresa" value={form.empresa} onChange={handleChange} className="border p-2 rounded" />
+        <input name="data_hora" type="datetime-local" value={form.data_hora} onChange={handleChange} className="border p-2 rounded" required />
+        <input name="pessoas" type="number" placeholder="Nº de Pessoas" value={form.pessoas} onChange={handleChange} className="border p-2 rounded" />
+        <select name="status" value={form.status} onChange={handleChange} className="border p-2 rounded">
+          <option value="">Status</option>
+          <option value="CONFIRMADO">Confirmado</option>
+          <option value="EM ANÁLISE">Em Análise</option>
+          <option value="CANCELADO">Cancelado</option>
+        </select>
+        <select name="local" value={form.local} onChange={handleChange} className="border p-2 rounded">
+          <option value="">Local</option>
+          <option value="SALA DE EVENTOS">Sala de Eventos</option>
+          <option value="RESTAURANTE">Restaurante</option>
+        </select>
+        <select name="menu" value={form.menu} onChange={handleMenuChange} className="border p-2 rounded">
+          <option value="">Menu</option>
+          <option value="MENU 1">Menu 1</option>
+          <option value="MENU 2">Menu 2</option>
+          <option value="MENU 3">Menu 3</option>
+          <option value="MENU 4">Menu 4</option>
+          <option value="MENU A DEFINIR">Menu a Definir</option>
+        </select>
+        <input name="valor_por_pessoa" type="number" step="0.01" placeholder="Valor por Pessoa" value={form.valor_por_pessoa} onChange={handleChange} className="border p-2 rounded" />
+        <label className="inline-flex items-center">
+          <input type="checkbox" name="bebidas" checked={form.bebidas} onChange={handleChange} className="mr-2" />
+          Incluir pacote de bebidas (+R$ 35,00 por pessoa)
+        </label>
+        <textarea name="observacoes" placeholder="Observações" value={form.observacoes} onChange={handleChange} className="border p-2 rounded"></textarea>
+        <div className="flex gap-2">
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
+          <Link to="/" className="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</Link>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Router>
